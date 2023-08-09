@@ -1,6 +1,6 @@
-import authRouter from "./auth.routes";
+import { Router } from "express";
+import authRouter from "./auth.routes.js";
 
-const { Router } = require("express");
 
 const router = Router();
 
