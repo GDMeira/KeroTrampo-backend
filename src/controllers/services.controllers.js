@@ -15,7 +15,7 @@ export async function getServiceDetails(req, res) {
 
     try {
         const service = await readServiceDetails(id);
-        if (service.rowsCount === 0) return res.status(404).send({message: 'Serviço não encontrado.'})
+        if (service.rowCount === 0) return res.status(404).send({message: 'Trampo não encontrado.'})
 
         res.send(service.rows)
     } catch (error) {
