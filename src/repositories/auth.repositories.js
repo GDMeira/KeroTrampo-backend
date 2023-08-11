@@ -23,3 +23,11 @@ export function createSession(id, token) {
         SET token = $2, created_at = NOW(); 
     `, [id, token])
 }
+
+export function findSessionByToken(token) {
+    return db.query(`
+            SELECT id, user_id AS "userId", token 
+            FROM sessions
+            WHERE token = $1;
+        `, [token]);
+}
