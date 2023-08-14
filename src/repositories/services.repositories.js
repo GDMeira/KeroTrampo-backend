@@ -108,3 +108,26 @@ export function readAllParams() {
     ) AS locations;
     `)
 }
+
+export function readServicesByCategories() {
+    return db.query(`
+    SELECT categories.name, categories.id, service
+    FROM categories
+    LEFT JOIN (
+        SELECT json_agg(json_build_object(
+            'id', s.id,
+            'meanCost', s.mean_cost,
+            'name', s.name,
+            'description', s.description,
+            'url', i.url)) AS service,
+            categories.name AS category
+        FROM services AS s
+        JOIN images AS i ON s.main_image_id = i.id
+        JOIN categories ON s.category_id = categories.id
+        JOIN adress ON adress.user_id = s.user_id
+        JOIN cities ON cities.id = adress.city_id
+        JOIN states ON states.id = cities.state_id
+        WHERE s.is_visible = true
+        GROUP BY category) service_target_category ON service_target_category.category = categories.name;
+    `);
+}
