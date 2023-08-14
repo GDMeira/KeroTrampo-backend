@@ -11,7 +11,6 @@ export async function signup(req, res) {
         await createUser(newUser);
         res.sendStatus(201);
     } catch (error) {
-        console.log(error);
         res.status(500).send({message: error.message});
     }
 
@@ -30,7 +29,6 @@ export async function signin(req, res) {
 
         res.send({token});
     } catch (error) {
-        console.log(error);
         res.status(500).send({message: error.message});
     }
 

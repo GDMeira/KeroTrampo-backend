@@ -1,13 +1,49 @@
 import db from "../database/database.connection.js";
 
-export function readServices() {
-    return db.query(`
+export function readServices(search, priceMin, priceMax, category, city, state) {
+    const queryParams = [];
+    let query = `
         SELECT s.id, s.mean_cost AS "meanCost", s.name, s.description, categories.name AS category, i.url
         FROM services AS s
         JOIN images AS i ON s.main_image_id = i.id
         JOIN categories ON s.category_id = categories.id
-        WHERE s.is_visible = true;
-    `)
+        JOIN adress ON adress.user_id = s.user_id
+        JOIN cities ON cities.id = adress.city_id
+        JOIN states ON states.id = cities.state_id
+        WHERE s.is_visible = true
+    `;
+
+    if (category && category !== '') {
+        query += ` AND categories.name = $${queryParams.length + 1}`;
+        queryParams.push(category);
+    }
+
+    if (priceMin !== undefined) {
+        query += ` AND s.mean_cost > $${queryParams.length + 1}`;
+        queryParams.push(priceMin);
+    }
+
+    if (priceMax !== undefined) {
+        query += ` AND s.mean_cost < $${queryParams.length + 1}`;
+        queryParams.push(priceMax);
+    }
+
+    if (city !== undefined && city !== '') {
+        query += ` AND cities.name = $${queryParams.length + 1}`;
+        queryParams.push(city);
+    }
+
+    if (state !== undefined && state !== '') {
+        query += ` AND states.name = $${queryParams.length + 1}`;
+        queryParams.push(state);
+    }
+
+    if (search && search !== '') {
+        query += ` AND (s.name ILIKE $${queryParams.length + 1} OR s.description ILIKE $${queryParams.length + 1})`;
+        queryParams.push(`%${search}%`);
+    }
+
+    return db.query(query, queryParams);
 }
 
 export function readServiceDetails(id) {
@@ -44,4 +80,31 @@ export function readServiceDetails(id) {
         target_regions.target, u.name, u.phone, u.main_image_url, u.description,
         cities.name, states.acronym, states.name;
     `, [id])
+}
+
+export function readAllParams() {
+    return db.query(`
+    SELECT 
+    (
+        SELECT json_agg(categories.name) FROM categories
+    ) AS categories,
+    (
+        SELECT json_agg(target_regions.target) FROM target_regions
+    ) AS targets,
+    (
+        SELECT MIN(services.mean_cost) from services
+    ) AS "minCost",
+    (
+        SELECT MAX(services.mean_cost) from services
+    ) AS "maxCost",
+    (
+        SELECT json_agg(json_build_object('name', states.name, 'cities', cities))
+		FROM states
+		LEFT JOIN (
+			SELECT state_id, json_agg(cities.name) AS cities
+			FROM cities
+			GROUP BY state_id
+		) state_cities ON state_cities.state_id = states.id
+    ) AS locations;
+    `)
 }
