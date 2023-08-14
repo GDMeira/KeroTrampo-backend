@@ -1,4 +1,4 @@
-import { createImages, deleteImages, findServiceById, readSavedImages, readServiceDetails, readUserServices, updateImages, updateService } from "../repositories/user.repositories.js";
+import { createImages, createService, deleteImages, findServiceById, readParams, readSavedImages, readServiceDetails, readUserServices, setMainImage, updateImages, updateService } from "../repositories/user.repositories.js";
 
 export async function getUserServices(req, res) {
     try {
@@ -44,6 +44,29 @@ export async function putServiceDetails(req, res) {
         await updateService(info, id)
 
         res.sendStatus(204);
+    } catch (error) {
+        res.status(500).send({message: error.message});
+    }
+}
+
+export async function getParams(req, res) {
+    try {
+        const params = await readParams();
+        res.send(params.rows[0]);
+    } catch (error) {
+        res.status(500).send({message: error.message});
+    }
+}
+
+export async function postService(req, res) {
+    const info = req.body;
+
+    try {
+        const id = (await createService(info, res.locals.userId)).rows[0].id;
+        await createImages(info.images, id);
+        await setMainImage(info.mainImage, id);
+
+        res.sendStatus(201);
     } catch (error) {
         res.status(500).send({message: error.message});
     }
