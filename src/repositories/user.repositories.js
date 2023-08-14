@@ -9,7 +9,7 @@ export function readUserServices(userId) {
     `, [userId])
 }
 
-export function readServiceDetails(id) {
+export function readServiceDetails(serviceId) {
     return db.query(`
         SELECT 
             s.user_id AS "userId",
@@ -40,37 +40,37 @@ export function readServiceDetails(id) {
         WHERE s.id = $1
         GROUP BY s.mean_cost, s.name, s.description, categories.name,
         target_regions.target, s.user_id, s.is_visible;
-    `, [id])
+    `, [serviceId])
 }
 
-export function findServiceById(id) {
+export function findServiceById(serviceId) {
     return db.query(`
         SELECT user_id AS "userId"
         FROM services
         WHERE services.id = $1;
-    `, [id])
+    `, [serviceId])
 }
 
-export function readSavedImages(id) {
+export function readSavedImages(serviceId) {
     return db.query(`
         SELECT services_images.image_id AS id, images.url
         FROM services_images
         JOIN images ON images.id = services_images.image_id
         WHERE services_images.service_id = $1;
-    `, [id])
+    `, [serviceId])
 }
 
-export function deleteImages(imagesId, id) {
+export function deleteImages(imagesId, serviceId) {
     return db.query(`
         DELETE FROM services_images
         USING images
         WHERE services_images.service_id = $1
         AND images.id = services_images.image_id
         AND images.id = ANY($2);
-    `, [id, imagesId]);
+    `, [serviceId, imagesId]);
 }
 
-export function createImages(images, id) {
+export function createImages(images, serviceId) {
     return db.query(`
         WITH inserted_images AS (
             INSERT INTO images (url)
@@ -82,7 +82,7 @@ export function createImages(images, id) {
         SELECT
             $1, id
         FROM inserted_images;
-    `, [id, ...images.map(image => image.url)]);
+    `, [serviceId, ...images.map(image => image.url)]);
 }
 
 export function updateImages(images) {
@@ -102,7 +102,7 @@ export function updateImages(images) {
     `, arrayImages);
 }
 
-export function updateService(info, id) {
+export function updateService(info, serviceId) {
     return db.query(`
         UPDATE services
         SET 
@@ -126,6 +126,50 @@ export function updateService(info, id) {
                 main_image_id
             )
         WHERE services.id = $1;
-    `, [id, info.name, info.description, info.meanCost, info.isVisible, info.category, info.targetRegion,
+    `, [serviceId, info.name, info.description, info.meanCost, info.isVisible, info.category, info.targetRegion,
         info.mainImage]);
+}
+
+export function readParams() {
+    return db.query(`
+    SELECT 
+        (
+            SELECT json_agg(categories.name) FROM categories
+        ) AS categories,
+        (
+            SELECT json_agg(target_regions.target) FROM target_regions
+        ) AS targets;
+    `)
+}
+
+export function createService(info, userId) {
+    return db.query(`
+        INSERT INTO services (name, description, mean_cost, is_visible, category_id, target_region_id, user_id)
+        VALUES( 
+            $1, $2, $3, $4, (
+                SELECT c.id FROM categories AS c WHERE c.name = $5
+            ), (
+                SELECT t.id FROM target_regions AS t WHERE t.target = $6
+            ),
+            $7
+        )
+        RETURNING id;
+    `, [info.name, info.description, info.meanCost, info.isVisible, info.category, info.targetRegion, userId]);
+}
+
+export function setMainImage(mainImage, serviceId) {
+    return db.query(`
+        UPDATE services
+        SET 
+            main_image_id = COALESCE(
+                (
+                    SELECT images.id
+                    FROM images
+                    JOIN services_images ON images.id = services_images.image_id AND services_images.service_id = $1
+                    WHERE images.url = $2
+                ),
+                main_image_id
+            )
+        WHERE services.id = $1;
+    `, [serviceId, mainImage]);
 }
