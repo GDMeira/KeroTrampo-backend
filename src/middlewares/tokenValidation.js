@@ -1,4 +1,3 @@
-import db from "../database/database.connection.js"
 import { findSessionByToken } from "../repositories/auth.repositories.js"
 
 export async function tokenValidation(req, res, next) {
