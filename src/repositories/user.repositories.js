@@ -1,7 +1,7 @@
 import db from "../database/database.connection.js";
 
 export function readUserServices(userId) {
-    return db.query(`
+    return db.query(`/* SQL */
         SELECT s.id, s.mean_cost AS "meanCost", s.name, s.is_visible AS "isVisible", i.url
         FROM services AS s
         JOIN images AS i ON s.main_image_id = i.id
@@ -10,7 +10,7 @@ export function readUserServices(userId) {
 }
 
 export function readServiceDetails(serviceId) {
-    return db.query(`
+    return db.query(`/* SQL */
         SELECT 
             s.user_id AS "userId",
             s.mean_cost AS "meanCost",
@@ -44,7 +44,7 @@ export function readServiceDetails(serviceId) {
 }
 
 export function findServiceById(serviceId) {
-    return db.query(`
+    return db.query(`/* SQL */
         SELECT user_id AS "userId"
         FROM services
         WHERE services.id = $1;
@@ -52,7 +52,7 @@ export function findServiceById(serviceId) {
 }
 
 export function readSavedImages(serviceId) {
-    return db.query(`
+    return db.query(`/* SQL */
         SELECT services_images.image_id AS id, images.url
         FROM services_images
         JOIN images ON images.id = services_images.image_id
@@ -61,7 +61,7 @@ export function readSavedImages(serviceId) {
 }
 
 export function deleteImages(imagesId, serviceId) {
-    return db.query(`
+    return db.query(`/* SQL */
         DELETE FROM services_images
         USING images
         WHERE services_images.service_id = $1
@@ -71,7 +71,7 @@ export function deleteImages(imagesId, serviceId) {
 }
 
 export function createImages(images, serviceId) {
-    return db.query(`
+    return db.query(`/* SQL */
         WITH inserted_images AS (
             INSERT INTO images (url)
             VALUES
@@ -92,7 +92,7 @@ export function updateImages(images) {
         arrayImages.push(image.url);
     });
 
-    return db.query(`
+    return db.query(`/* SQL */
         UPDATE images AS i
         SET url = c.url
         FROM (
@@ -103,7 +103,7 @@ export function updateImages(images) {
 }
 
 export function updateService(info, serviceId) {
-    return db.query(`
+    return db.query(`/* SQL */
         UPDATE services
         SET 
             name = $2,
@@ -131,7 +131,7 @@ export function updateService(info, serviceId) {
 }
 
 export function readParams() {
-    return db.query(`
+    return db.query(`/* SQL */
     SELECT 
         (
             SELECT json_agg(categories.name) FROM categories
@@ -143,7 +143,7 @@ export function readParams() {
 }
 
 export function createService(info, userId) {
-    return db.query(`
+    return db.query(`/* SQL */
         INSERT INTO services (name, description, mean_cost, is_visible, category_id, target_region_id, user_id)
         VALUES( 
             $1, $2, $3, $4, (
@@ -158,7 +158,7 @@ export function createService(info, userId) {
 }
 
 export function setMainImage(mainImage, serviceId) {
-    return db.query(`
+    return db.query(`/* SQL */
         UPDATE services
         SET 
             main_image_id = COALESCE(

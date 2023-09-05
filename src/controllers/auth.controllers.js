@@ -37,7 +37,6 @@ export async function signin(req, res) {
 }
 
 export async function signout(req, res) {
-    console.log(res.locals)
     try {
         await deleteSession(res.locals.userId);
 
