@@ -13,11 +13,17 @@ export function readServices(search, priceMin, priceMax, category, city, state) 
         WHERE s.is_visible = true
     `;
 
+    dynamicQuery(queryParams, query, search, priceMin, priceMax, category, city, state);
+
+    return db.query(query, queryParams);
+}
+
+const dynamicQuery = (queryParams, query, search, priceMin, priceMax, category, city, state) => {
     if (category && category !== '') {
         query += ` AND categories.name = $${queryParams.length + 1}`;
         queryParams.push(category);
     }
-
+    
     if (priceMin !== undefined) {
         query += ` AND s.mean_cost > $${queryParams.length + 1}`;
         queryParams.push(priceMin);
@@ -42,8 +48,6 @@ export function readServices(search, priceMin, priceMax, category, city, state) 
         query += ` AND (s.name ILIKE $${queryParams.length + 1} OR s.description ILIKE $${queryParams.length + 1})`;
         queryParams.push(`%${search}%`);
     }
-
-    return db.query(query, queryParams);
 }
 
 export function readServiceDetails(id) {
