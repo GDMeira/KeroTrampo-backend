@@ -1,11 +1,10 @@
-import { readAllParams, readServiceDetails, readServices, readServicesByCategories } from "../repositories/services.repositories.js";
+import { servicesServices } from "../services/services.services.js";
 
 export async function getServices(req, res) {
-    const { search, priceMin, priceMax, category, city, state } = req.query;
-
     try {
-        const services = await readServices(search, priceMin, priceMax, category, city, state);
-        res.send(services.rows)
+        const services = await servicesServices.getServices(req.query);
+
+        res.send(services)
     } catch (error) {
         res.status(500).send({message: error.message});
     }
@@ -16,29 +15,30 @@ export async function getServiceDetails(req, res) {
     if (!Number(id) || Number(id) < 1) return res.status(422).send({message: 'id do serviço não é válido.'})
 
     try {
-        const service = await readServiceDetails(id);
-        if (service.rowCount === 0) return res.status(404).send({message: 'Trampo não encontrado.'})
+        const service = await servicesServices.getServiceDetails(id);
+        
+        res.send(service)
+    } catch (error) {
+        if (error instanceof ApplicationError) return res.status(error.statusCode).send({message: error.message});
+        res.status(500).send({message: error.message});
+    }
+}
 
-        res.send(service.rows)
+export async function getAllParams(_req, res) {
+    try {
+        const params = await servicesServices.getAllParams();
+
+        res.send(params);
     } catch (error) {
         res.status(500).send({message: error.message});
     }
 }
 
-export async function getAllParams(req, res) {
+export async function getServicesByCategories(_req, res) {
     try {
-        const params = await readAllParams();
-        res.send(params.rows[0]);
-    } catch (error) {
-        res.status(500).send({message: error.message});
-    }
-}
+        const services = await servicesServices.getServicesByCategories();
 
-export async function getServicesByCategories(req, res) {
-
-    try {
-        const services = await readServicesByCategories();
-        res.send(services.rows)
+        res.send(services)
     } catch (error) {
         res.status(500).send({message: error.message});
     }
