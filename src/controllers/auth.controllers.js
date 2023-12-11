@@ -1,5 +1,5 @@
 import bcrypt from 'bcrypt';
-import { createSession, createUser, findUserByEmail } from '../repositories/auth.repositories.js';
+import { createSession, createUser, deleteSession, findUserByEmail } from '../repositories/auth.repositories.js';
 import { nanoid } from 'nanoid';
 
 export async function signup(req, res) {
@@ -21,15 +21,27 @@ export async function signin(req, res) {
 
     try {
         const dbUser = await findUserByEmail(user.email);
-        if (dbUser.rowCount === 0) return res.status(404).send({message: 'email não cadastrado.'})
-        if (!bcrypt.compareSync(user.password, dbUser.rows[0].password)) return res.status(401).send({message: 'Senha incorreta.'})
+        const userInfo = dbUser.rows[0];
+        if (dbUser.rowCount === 0) return res.status(401).send({message: 'Usuário ou senha inválidos.'})
+        if (!bcrypt.compareSync(user.password, userInfo.password)) return res.status(401).send({message: 'Usuário ou senha inválidos.'})
 
         const token = nanoid();
-        await createSession(dbUser.rows[0].id, token);
+        delete userInfo.password;
+        await createSession(userInfo.id, token);
 
-        res.send({token});
+        res.send({token, ...userInfo});
     } catch (error) {
         res.status(500).send({message: error.message});
     }
 
+}
+
+export async function signout(req, res) {
+    try {
+        await deleteSession(res.locals.userId);
+
+        res.sendStatus(204);
+    } catch (error) {
+        res.status(500).send({message: error.message});
+    }
 }
