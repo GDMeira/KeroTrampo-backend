@@ -13,7 +13,7 @@ async function getServiceDetails(serviceId) {
     const service = await readServiceDetails(serviceId);
     if (service.rowCount === 0) throw new ApplicationError('Trampo não encontrado.', 404);
 
-    return service
+    return service.rows
 }
 
 async function getAllParams() {
