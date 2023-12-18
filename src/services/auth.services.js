@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import { createSession, createUser, findUserByEmail } from "../repositories/auth.repositories.js";
+import { createSession, createUser, deleteSession, findUserByEmail } from "../repositories/auth.repositories.js";
 import bcrypt from 'bcrypt';
 
 async function signup(newUser) {

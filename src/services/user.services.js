@@ -1,4 +1,5 @@
 import {
+    createAddress,
     createImages,
     createService,
     deleteImages,
@@ -9,7 +10,8 @@ import {
     readUserServices,
     setMainImage,
     updateImages,
-    updateService
+    updateService,
+    updateUserDescription
 } from "../repositories/user.repositories.js";
 import { ApplicationError } from "../utils/constants.js";
 
@@ -56,10 +58,20 @@ async function postService(info, userId) {
     await setMainImage(info.mainImage, id);
 }
 
+async function postAddress(info, userId) {
+    const [address, _user] = await Promise.all([
+        createAddress(info, userId), 
+        updateUserDescription(info.description, userId)
+    ]);
+
+    return address.rows[0];
+}
+
 export const userServices = {
     getUserServices,
     getServiceDetails,
     putServiceDetails,
     getParams,
-    postService
+    postService,
+    postAddress
 }

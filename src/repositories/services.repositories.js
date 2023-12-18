@@ -2,12 +2,17 @@ import db from "../database/database.connection.js";
 
 export function readServices(search, priceMin, priceMax, category, city, state) {
     const queryParams = [];
-    let query = `
+    let query = `/* SQL */
         SELECT s.id, s.mean_cost AS "meanCost", s.name, s.description, categories.name AS category, i.url
         FROM services AS s
         JOIN images AS i ON s.main_image_id = i.id
         JOIN categories ON s.category_id = categories.id
-        JOIN adress ON adress.user_id = s.user_id
+        JOIN (
+            SELECT user_id, MAX(id) AS id
+            FROM adress
+            GROUP BY user_id
+        ) AS recent_adress ON recent_adress.user_id = s.user_id
+        JOIN adress ON recent_adress.id = adress.id
         JOIN cities ON cities.id = adress.city_id
         JOIN states ON states.id = cities.state_id
         WHERE s.is_visible = true
@@ -51,7 +56,7 @@ const dynamicQuery = (queryParams, query, search, priceMin, priceMax, category, 
 }
 
 export function readServiceDetails(id) {
-    return db.query(`
+    return db.query(`/* SQL */
         SELECT 
         json_build_object(
             'meanCost', s.mean_cost,
@@ -76,7 +81,12 @@ export function readServiceDetails(id) {
         JOIN categories ON s.category_id = categories.id
         JOIN target_regions ON s.target_region_id = target_regions.id
         JOIN users AS u ON u.id = s.user_id
-        JOIN adress ON u.id = adress.user_id
+        JOIN (
+            SELECT user_id, MAX(id) AS id
+            FROM adress
+            GROUP BY user_id
+        ) AS recent_adress ON recent_adress.user_id = u.id
+        JOIN adress ON recent_adress.id = adress.id
         JOIN cities ON cities.id = adress.city_id
         JOIN states ON cities.state_id = states.id
         WHERE s.is_visible = true AND s.id = $1
@@ -87,7 +97,7 @@ export function readServiceDetails(id) {
 }
 
 export function readAllParams() {
-    return db.query(`
+    return db.query(`/* SQL */
     SELECT 
     (
         SELECT json_agg(categories.name) FROM categories
@@ -114,7 +124,7 @@ export function readAllParams() {
 }
 
 export function readServicesByCategories() {
-    return db.query(`
+    return db.query(`/* SQL */
     SELECT categories.name, categories.id, service
     FROM categories
     LEFT JOIN (
@@ -128,7 +138,12 @@ export function readServicesByCategories() {
         FROM services AS s
         JOIN images AS i ON s.main_image_id = i.id
         JOIN categories ON s.category_id = categories.id
-        JOIN adress ON adress.user_id = s.user_id
+        JOIN (
+            SELECT user_id, MAX(id) AS id
+            FROM adress
+            GROUP BY user_id
+        ) AS recent_adress ON recent_adress.user_id = s.user_id
+        JOIN adress ON recent_adress.id = adress.id
         JOIN cities ON cities.id = adress.city_id
         JOIN states ON states.id = cities.state_id
         WHERE s.is_visible = true
