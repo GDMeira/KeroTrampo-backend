@@ -173,3 +173,22 @@ export function setMainImage(mainImage, serviceId) {
         WHERE services.id = $1;
     `, [serviceId, mainImage]);
 }
+
+export function createAddress(info, userId) {
+    return db.query(`/* SQL */
+        INSERT INTO adress 
+            (user_id, city_id, street_avenue, number, complement)
+        VALUES
+            ($1, (
+                SELECT id FROM cities WHERE name = $2
+            ), $3, $4, $5);
+        `, [userId, info.city, info.streetAvenue, info.number, info.complement]);
+}
+
+export function updateUserDescription(description, userId) {
+    return db.query(`/* SQL */
+        UPDATE users
+        SET description = $1, is_provider = true
+        WHERE id = $2;
+    `, [description, userId]);
+}

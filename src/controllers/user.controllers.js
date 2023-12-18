@@ -1,4 +1,5 @@
 import { userServices } from "../services/user.services.js";
+import { ApplicationError } from "../utils/constants.js";
 
 export async function getUserServices(_req, res) {
     try {
@@ -57,6 +58,19 @@ export async function postService(req, res) {
         await userServices.postService(info, res.locals.userId);
 
         res.sendStatus(201);
+    } catch (error) {
+        if (error instanceof ApplicationError) return res.status(error.statusCode).send({message: error.message});
+        res.status(500).send({message: error.message});
+    }
+}
+
+export async function postAddress(req, res) {
+    const info = req.body;
+
+    try {
+        const address = await userServices.postAddress(info, res.locals.userId);
+
+        res.status(201).send(address);
     } catch (error) {
         if (error instanceof ApplicationError) return res.status(error.statusCode).send({message: error.message});
         res.status(500).send({message: error.message});
