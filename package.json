@@ -4,6 +4,9 @@
   "version": "1.0.0",
   "description": "Backend do projeto KeroTrampo que é uma plataforma de divulgação e contratação de serviços. Desenvolvido com Node.js, Express, dotenv, Joi, string-strip-html, google-auth, PostgreSQL, uuid, nodemon.",
   "main": "./src/app.js",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node ./src/app.js",
     "dev": "npx nodemon ./src/app.js",
